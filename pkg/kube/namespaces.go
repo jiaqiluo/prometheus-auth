@@ -51,6 +51,8 @@ func (n *namespaces) query(token string) (data.Set, error) {
 	if err != nil {
 		return ret, err
 	}
+	log.Infof("querying the token: %s", token)
+	log.Infof("querying the namespace: %s", tokenNamespace)
 
 	nsObj, exist, _ := n.namespaceIndexer.GetByKey(tokenNamespace)
 	if !exist {
