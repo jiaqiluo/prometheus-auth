@@ -80,6 +80,7 @@ func (n *namespaces) query(token string) (data.Set, error) {
 }
 
 func (n *namespaces) validate(token string) (string, error) {
+	log.Infof("validating the token: %s", token)
 	secList, err := n.secretIndexer.ByIndex(byTokenIndex, token)
 	if err != nil || len(secList) != 1 {
 		return "", errors.Annotatef(err, "unknown token")
@@ -92,11 +93,14 @@ func (n *namespaces) validate(token string) (string, error) {
 
 	_, exist := n.reviewResultTTLCache.Get(token)
 	if exist {
+		log.Infof("found the secret %s in the namespace %s", sec.Name, sec.Namespace)
 		return sec.Namespace, nil
 	}
+	log.Infof("Failed to found the secret %s in the namespace %s", sec.Name, sec.Namespace)
 
 	projectMonitoringServiceAccountName := "project-monitoring"
 	sarUser := fmt.Sprintf("system:serviceaccount:%s:%s", sec.Namespace, projectMonitoringServiceAccountName)
+	log.Infof("sarUser: %s", sarUser)
 	sar := &authorization.SubjectAccessReview{
 		Spec: authorization.SubjectAccessReviewSpec{
 			ResourceAttributes: &authorization.ResourceAttributes{
@@ -114,6 +118,7 @@ func (n *namespaces) validate(token string) (string, error) {
 	}
 
 	if !reviewResult.Status.Allowed || reviewResult.Status.Denied {
+		log.Errorf("reviewResult.Status.Reason: %s", reviewResult.Status.Reason)
 		return "", errors.New("denied token")
 	}
 
