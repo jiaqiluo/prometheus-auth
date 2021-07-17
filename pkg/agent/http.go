@@ -17,15 +17,13 @@ func (a *agent) httpBackend() http.Handler {
 	proxy := httputil.NewSingleHostReverseProxy(a.cfg.proxyURL)
 	router := mux.NewRouter()
 
-	if log.GetLevel() == log.DebugLevel {
-		router.Use(func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-				log.Debugf("%s - %s", req.Method, req.URL.Path)
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
+			log.Debugf("%s - %s", req.Method, req.URL.Path)
 
-				next.ServeHTTP(resp, req)
-			})
+			next.ServeHTTP(resp, req)
 		})
-	}
+	})
 
 	// enable metrics
 	router.Path("/_/metrics").Methods("GET").Handler(promhttp.Handler())
