@@ -21,7 +21,6 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.29.0
 	github.com/prometheus/prometheus v1.8.2-0.20210701133801-b0944590a1c9
-	github.com/prometheus/tsdb v0.7.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.7.0
 	github.com/urfave/cli v1.22.1

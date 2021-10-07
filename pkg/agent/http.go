@@ -55,22 +55,38 @@ func (a *agent) httpBackend() http.Handler {
 }
 
 func accessControl(agt *agent, proxyHandler http.Handler) http.Handler {
+	log.Infof("the accessControl is invoked.")
 	router := mux.NewRouter()
 
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Info("----------------begin accessControl----------------")
+			log.Infof("%s - %s", r.Method, r.URL.Path)
+			// Save a copy of this result for debugging.
+			ruestDump, err := httputil.DumpRequest(r, true)
+			if err != nil {
+				log.Infof("failed to print the ruest: %s", err)
+			} else {
+				log.Info(string(ruestDump))
+			}
+			log.Info("----------------end accessControl----------------")
 			accessToken := strings.TrimPrefix(r.Header.Get(authorizationHeaderKey), "Bearer ")
+			log.Infof("accessToken from the request: [%s]", accessToken)
 			if len(accessToken) == 0 {
+				log.Errorf("No accessToken is found.")
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
 
-			// direct proxy
+			// direct proxy happens when the request is from the cluster-monitoring Grafana and k8s <= 1.20
 			if agt.cfg.myToken == accessToken {
+				log.Infof("agt.cfg.myToekn == accessToken, go with proxhandler")
 				proxyHandler.ServeHTTP(w, r)
 				return
 			}
 
+			log.Infof("token are different, go to create new apiCtx")
+			// the request is from the project monitoring Grafana, or when k8s >= 1.21
 			apiCtx := &apiContext{
 				tag:                  fmt.Sprintf("%016x", time.Now().Unix()),
 				response:             w,
@@ -81,7 +97,9 @@ func accessControl(agt *agent, proxyHandler http.Handler) http.Handler {
 				remoteAPI:            agt.remoteAPI,
 			}
 
+			log.Infof("creating new req ctx")
 			newReqCtx := context.WithValue(r.Context(), apiContextKey, apiCtx)
+			log.Infof("creating new req ctx - done")
 			next.ServeHTTP(w, r.WithContext(newReqCtx))
 		})
 	})

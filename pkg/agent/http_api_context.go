@@ -18,8 +18,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
+type key string
+
 const (
-	apiContextKey = "_apiContext_"
+	apiContextKey key = "_apiContext_"
 )
 
 var (

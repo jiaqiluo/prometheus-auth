@@ -228,18 +228,21 @@ func hijackQueryRange(apiCtx *apiContext) error {
 
 	// hijack
 	req.Form.Del("query")
-	log.Debugf("raw query[%s - 0] => %s", apiCtx.tag, rawValue)
+	log.Debugf("raw queryRange[%s - 0] => %s", apiCtx.tag, rawValue)
+	log.Infof("[1]  queryRange queryExpr: %v, apiCtx.namespaceSet: %v", queryExpr, apiCtx.namespaceSet)
 	hjkValue := modifyExpression(queryExpr, apiCtx.namespaceSet)
-	log.Debugf("hjk query[%s - 0] => %s", apiCtx.tag, hjkValue)
+	log.Debugf("hjk queryRange[%s - 0] => %s", apiCtx.tag, hjkValue)
 	req.Form.Set("query", hjkValue)
 
 	// inject
 	reqURL := *req.URL
 	reqURL.RawQuery = req.Form.Encode()
 
+	log.Infof("reqURL: %s", reqURL.String())
 	// proxy
 	newReq, err := http.NewRequest(http.MethodGet, reqURL.String(), nil)
 	if err != nil {
+		log.Error("ERROR HAPPENED")
 		return errors.Wrap(err, internalErr)
 	}
 

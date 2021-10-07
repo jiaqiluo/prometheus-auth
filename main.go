@@ -79,6 +79,10 @@ func main() {
 			runtime.SetBlockProfileRate(20)
 			runtime.SetMutexProfileFraction(20)
 		}
+		// always show debug logs
+		log.SetLevel(log.DebugLevel)
+		runtime.SetBlockProfileRate(20)
+		runtime.SetMutexProfileFraction(20)
 
 		log.SetOutput(os.Stdout)
 
